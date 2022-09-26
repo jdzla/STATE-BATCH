@@ -1,0 +1,10 @@
+﻿Surface,PSEUDOS,Crystalstructure,Facet,XCTYPE
+Cu,Cu@pot.Cu_pbe1,fcc,111,vdw-df
+Cu,Cu@pot.Cu_pbe1,fcc,111,ggapbe
+Cu,Cu@pot.Cu_pbe1,fcc,111,vdw-df2
+Cu,Cu@pot.Cu_pbe1,fcc,111,rev-vdw-df2
+Cu,Cu@pot.Cu_pbe1,fcc,111,optb86b-vdw
+Cu,Cu@pot.Cu_pbe1,fcc,111,rpbe
+Cu,Cu@pot.Cu_pbe1,fcc,111,rpbe-d2
+Cu,Cu@pot.Cu_pbe1,fcc,111,revpbe
+Cu,Cu@pot.Cu_pbe1,fcc,111,revpbe-d2

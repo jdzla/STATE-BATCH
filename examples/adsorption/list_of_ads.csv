@@ -1,0 +1,6 @@
+Surface,Adsorbate,PSEUDOS,XCTYPE,Site
+Cu,O,Cu@pot.Cu_pbe1|C@pot.C_pbe1|O@pot.O_pbe1,ggapbe,ontop
+Cu,O,Cu@pot.Cu_pbe1|C@pot.C_pbe1|O@pot.O_pbe1,ggapbe,bridge
+Cu,O,Cu@pot.Cu_pbe1|C@pot.C_pbe1|O@pot.O_pbe1,ggapbe,fcc
+Cu,O,Cu@pot.Cu_pbe1|C@pot.C_pbe1|O@pot.O_pbe1,ggapbe,hcp
+

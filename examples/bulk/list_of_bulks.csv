@@ -1,0 +1,10 @@
+﻿Bulk,PSEUDOS,Crystalstructure,Priority
+Li,Li@pot.Li_pbe1TM,bcc,Low
+Be,Be@pot.Be_pbe1TM,hcp,Low
+Na,Na@pot.Na_pbe1,bcc,Medium
+Mg,Mg@pot.Mg_pbe1,hcp,Medium
+Al,Al@pot.Al_pbe1,fcc,High
+Si,Si@pot.Si_pbe1,diamond,High
+Ca,Ca@pot.Ca_pbe1,fcc,Medium
+Ti,Ti@pot.Ti_pbe1,hcp,Medium
+V,V@pot.V_pbe3,bcc,Low
