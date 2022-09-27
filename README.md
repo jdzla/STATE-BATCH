@@ -3,6 +3,8 @@ Python wrapper for high-throughput calculations using STATE code.
 
 **Dependencies:**\
 Below are dependencies that should be installed before running STATE-BATCH.
+- PYTHON
+  - version >= 3.8
 - ASE-STATE interface 
   - `git clone -b fix-bug-output-parser git@github.com:uedar/ase-state-interface.git`
   - `cd ase-state-interface`

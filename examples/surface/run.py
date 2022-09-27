@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../../statebatch/')
-from __init__ import Batch
+from statebatch.STATEbatch import Batch
 
 Batch_obj = Batch('input.yaml')
 
