@@ -3,12 +3,13 @@ from pathlib import Path
 from datetime import datetime
 import numpy as np
 import pandas as pd
-from state_interface.state import STATE
+from ase.calculators.espresso import Espresso
 from ase import Atoms
 from ase.build import molecule, bulk, fcc100, fcc110, fcc111, bcc100, bcc110, bcc111, add_adsorbate
 from ase.data import atomic_masses, atomic_numbers
 from ase.db import connect
 import yaml
+from pprint import pprint
 
 class Batch:
     """Batch wrapper
@@ -49,38 +50,52 @@ class Batch:
             for param in self.dft_spec.get('vary_params'):
                 input_data[param] = atom_to_run[param]
 
+            pprint(atom_to_run)
+            pprint(input_data)
+
             # Pseudopotential preparation
+            # -- Atomic mass not implemented here --
             pseudos = atom_to_run['PSEUDOS']
-            pseudo_list = []
+            pseudopotentials = {}
             for pseudo_element_pair in pseudos.split('|'):
                 element = pseudo_element_pair.split('@')[0]
                 pseudo_file = pseudo_element_pair.split('@')[1]
-                pseudolink = Path(os.path.join(os.getcwd(), pseudo_file))
-                pseudolink.unlink(missing_ok=True)
-                if os.path.exists(pseudolink):
-                    os.remove(pseudolink)
-                os.symlink(os.path.join(self.comp_spec.get('pseudo_loc'), pseudo_file), pseudolink)
-                pseudo_input = [element, atomic_masses[atomic_numbers[element]],pseudo_file]
-                pseudo_list.append(pseudo_input)
-            input_data['PSEUDOS'] = pseudo_list
+                pseudopotentials[element] = pseudo_file
+            input_data.pop('PSEUDOS', 'not_found')
+
+            input_data['pseudopotentials'] = pseudopotentials # **
+            input_data['PSEUDO_DIR'] = self.comp_spec.get('pseudo_loc')
 
             # XC functional preparation
-            if input_data["XCTYPE"] in ['vdw-df', 'vdw-df2', 'rev-vdw-df2', 'optb86b-vdw']:
-                input_data["VDW-DF"] =  {"QCUT": 10, "NQ": "20"}
+            if {'input_dft', 'vdw_corr'} <=  input_data.keys():
+                raise Exception('Use either input_dft and vdw_corr (not together)')
+            if input_data['XCTYPE'] in ['grimme-d2', 'Grimme-D2', 'DFT-D', 'dft-d',
+                                        'grimme-d3', 'Grimme-D3', 'DFT-D3', 'dft-d3',
+                                        'TS', 'ts', 'ts-vdw', 'ts-vdW', 'tkatchenko-scheffler',
+                                        'MBD', 'mbd', 'many-body-dispersion', 'mbd_vdw',
+                                        'XDM', 'xdm']:
+                input_data['VDW_CORR'] = input_data['XCTYPE']
+            else:
+                input_data['INPUT_DFT'] = input_data['XCTYPE']
+            input_data.pop('XCTYPE', 'not_found')
+
+            # K-points preparation
+            kpts = input_data['KPTS'].copy()
+            input_data['kpts'] = kpts
 
             return (input_data)
 
         def link():
-            """Links pseudopotential file (not required in QE)"""
+            """Links pseudopotential file and pw (not required in QE)"""
             pwlink = Path(os.path.join(os.getcwd(), self.comp_spec.get('pw_name')))
             pwlink.unlink(missing_ok=True)
             if os.path.exists(pwlink):
                 os.remove(pwlink)
             os.symlink(os.path.join(self.comp_spec.get('pw_loc'), self.comp_spec.get('pw_name')), pwlink)
-            
+
         def build(atom_to_run):
             """Build
-            
+
             Atomic structure builder and input file writer
 
             Parameters
@@ -128,7 +143,7 @@ class Batch:
             input_data = get_dft_params(atom_to_run)
             label = f"{_atoms}"
             input_file, output_file = f"{label}.in", f"{label}.out"
-            self.atoms_obj.calc = STATE(label=label, input_data=input_data)
+            self.atoms_obj.calc = Espresso(label=label, **input_data)
             self.atoms_obj.calc.write_input(self.atoms_obj)
             self.atoms_obj.write(f"{label}.xyz")
 
@@ -138,6 +153,5 @@ class Batch:
             dirname = self.comp_spec.get('prefix')+str(idx)
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
-            link()
             build(self.atoms_to_run[idx])
             os.chdir('../')

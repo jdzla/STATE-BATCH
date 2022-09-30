@@ -6,9 +6,9 @@
 
 comp_spec:
      csv_loc: ./list_of_single_atoms.csv # Location of csv file
-     pw_loc: /home/k0107/k010716/STATE/src/state-5.6.8/src  # Location of executable file
-     pw_name: STATE
-     pseudo_loc: /home/k0107/k010716/STATE/src/gncpp_pack   # Location of pseudopotentials directory
+     pw_loc: /home/krojas/apps/qe/qe-7.0/_build/bin  # Location of executable file
+     pw_name: pw.x
+     pseudo_loc: /home/krojas/apps/qe_pseudo/gbrv   # Location of pseudopotentials directory
      n_cpus: 16                          # Number of allocated cpus for each calculation
      n_nodes: 1                          # Number of allocated node(s) for each calculation
      prefix: atom_run_                         # Prefix for the directory name
@@ -21,21 +21,22 @@ system_spec:
 #     vary_params:
 
 dft_spec:
-    name: STATE                          # Can be STATE or QE
+    name: QE                             # Can be STATE or QE
     fix_params:                          # List of fixed parameters for each calculation
-        "GMAX": 6.00
-        "GMAXP": 20.00
-        "KPOINT_MESH": [1, 1, 1]
-        "KPOINT_SHIFT": ["OFF", "OFF", "OFF"]
-        "NEG": 12
-        "NSCF": 200
-        "NSTEP": 200
-        "TASK": "SCF"
-        "WAY_MIX": 6
-        "MIX_WHAT": 1
-        "KBXMIX": 30
-        "MIX_ALPHA": 0.5
-        "WIDTH": -0.0020
+        "CALCULATION": 'scf'
+        "TSTRESS": True
+        "TPRNFOR": True
+        "OUTDIR": './tmp'
+        "ECUTWFC": 50
+        "ECUTRHO": 400
+        "OCCUPATIONS": 'smearing'
+        "DEGAUSS": 0.01
+        "ELECTRON_MAXSTEP": 100
+        "CONV_THR": 0.000001
+        "MIXING_MODE": 'plain'
+        "MIXING_BETA": 0.7
+        "DIAGONALIZATION": 'david'
+        "KPTS": [1,1,1]
     vary_params:                         # List of STATE parameters to be read from csv file
         - "XCTYPE"
         - "PSEUDOS"
