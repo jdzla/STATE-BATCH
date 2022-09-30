@@ -11,26 +11,45 @@ from ase.db import connect
 import yaml
 
 class Batch:
+    """Batch wrapper
+
+    Parameters
+    ----------
+    yaml_f : str, path object or file-like object
+        YAML file path
+    """
     def __init__(self, yaml_f):
+        # Read YAML file
         with open (yaml_f, 'r') as f:
             config = yaml.safe_load(f)
 
+        # Read YAML input general components
         self.system_spec = config.get('system_spec')
         self.comp_spec   = config.get('comp_spec')
         self.dft_spec    = config.get('dft_spec')
-        
-        df          = pd.read_csv(self.comp_spec.get('csv_loc'))
+
+        # Read CSV file (system and parameter list)
+        df = pd.read_csv(self.comp_spec.get('csv_loc'))
         self.atoms_to_run = df.to_dict(orient='index')
 
     def prerun(self):
+        """Prepares work directory and run files"""
         def manage_system_params():
+            """Passes system `fix_params` to atoms_to_run dictionary"""
             for param in self.system_spec.get('fix_params'):
                 for idx in range(len(self.atoms_to_run)):
                     self.atoms_to_run[idx][param] = self.system_spec.get('fix_params').get(param)
+
         def get_dft_params(atom_to_run):
+            """Distributes dft parameters to calculator input"""
+            # Initialize input_data
             input_data = self.dft_spec.get('fix_params').copy()
+
+            # Replace template params with vary_params
             for param in self.dft_spec.get('vary_params'):
                 input_data[param] = atom_to_run[param]
+
+            # Pseudopotential preparation
             pseudos = atom_to_run['PSEUDOS']
             pseudo_list = []
             for pseudo_element_pair in pseudos.split('|'):
@@ -44,16 +63,31 @@ class Batch:
                 pseudo_input = [element, atomic_masses[atomic_numbers[element]],pseudo_file]
                 pseudo_list.append(pseudo_input)
             input_data['PSEUDOS'] = pseudo_list
+
+            # XC functional preparation
             if input_data["XCTYPE"] in ['vdw-df', 'vdw-df2', 'rev-vdw-df2', 'optb86b-vdw']:
                 input_data["VDW-DF"] =  {"QCUT": 10, "NQ": "20"}
+
             return (input_data)
+
         def link():
+            """Links pseudopotential file (not required in QE)"""
             pwlink = Path(os.path.join(os.getcwd(), self.comp_spec.get('pw_name')))
             pwlink.unlink(missing_ok=True)
             if os.path.exists(pwlink):
                 os.remove(pwlink)
             os.symlink(os.path.join(self.comp_spec.get('pw_loc'), self.comp_spec.get('pw_name')), pwlink)
+            
         def build(atom_to_run):
+            """Build
+            
+            Atomic structure builder and input file writer
+
+            Parameters
+            ----------
+            atom_to_run : dict
+                Atomic structure dictionary
+            """
             if (self.system_spec.get('type') == 'Atom'):
                 _atoms       = atom_to_run['Species']
                 self.atoms_obj = Atoms(_atoms)
@@ -90,14 +124,15 @@ class Batch:
                     self.adsorbate_obj = molecule(_adsorbate)
                     add_adsorbate(self.atoms_obj, self.adsorbate_obj, height = atom_to_run['Height'], position = atom_to_run['Site'])
 
-
+            # Finalize input_data and input file
             input_data = get_dft_params(atom_to_run)
             label = f"{_atoms}"
             input_file, output_file = f"{label}.in", f"{label}.out"
             self.atoms_obj.calc = STATE(label=label, input_data=input_data)
             self.atoms_obj.calc.write_input(self.atoms_obj)
             self.atoms_obj.write(f"{label}.xyz")
-        
+
+        # Run prerun for all systems in CSV
         manage_system_params()
         for idx in range(len(self.atoms_to_run)):
             dirname = self.comp_spec.get('prefix')+str(idx)
