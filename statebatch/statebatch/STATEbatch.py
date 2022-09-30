@@ -9,6 +9,7 @@ from ase.build import molecule, bulk, fcc100, fcc110, fcc111, bcc100, bcc110, bc
 from ase.data import atomic_masses, atomic_numbers
 from ase.db import connect
 import yaml
+from .jobutils import *
 
 class Batch:
     def __init__(self, yaml_f):
@@ -100,22 +101,6 @@ class Batch:
 
             return (atoms_obj, input_file, output_file)
 
-        def write_jobscript(idx, cwd, input_file, output_file):
-            n_cpus  = self.comp_spec.get('n_cpus')
-            pw_name = self.comp_spec.get('pw_name')
-            mpi_command = self.comp_spec.get('mpi_command')
-            command = f"{mpi_command} -np {n_cpus} ./{pw_name} < {input_file} > {output_file}"
-            if (idx == 0):
-                mode = 'w'
-            else:
-                mode = 'a'
-            with open ("jobscript.txt", mode) as f:
-                print (f"# Run system with idx {'{:04d}'.format(idx)}", file = f)
-                print (f"pushd {cwd}", file = f)
-                print (command, file = f)
-                print ("popd", file = f)
-                print (file = f)
-        
         manage_system_params()
         for idx in range(len(self.atoms_to_run)):
             cwd = os.getcwd()
@@ -125,6 +110,7 @@ class Batch:
             link()
             _, input_file, output_file = build(self.atoms_to_run[idx])
             os.chdir('../')
-            if make_jobscript is True: write_jobscript(idx, cwd, input_file, output_file) 
+            if make_jobscript is True: 
+                write_jobscript(self, idx, os.path.join(cwd,dirname), input_file, output_file) 
 
         
