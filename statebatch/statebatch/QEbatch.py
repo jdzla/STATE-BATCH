@@ -68,7 +68,7 @@ class Batch:
 
             # XC functional preparation
             if {'input_dft', 'vdw_corr'} <=  input_data.keys():
-                raise Exception('Use either input_dft and vdw_corr (not together)')
+                raise Exception('Use either input_dft or vdw_corr (not together)')
             if input_data['XCTYPE'] in ['grimme-d2', 'Grimme-D2', 'DFT-D', 'dft-d',
                                         'grimme-d3', 'Grimme-D3', 'DFT-D3', 'dft-d3',
                                         'TS', 'ts', 'ts-vdw', 'ts-vdW', 'tkatchenko-scheffler',
@@ -84,14 +84,6 @@ class Batch:
             input_data['kpts'] = kpts
 
             return (input_data)
-
-        def link():
-            """Links pseudopotential file and pw (not required in QE)"""
-            pwlink = Path(os.path.join(os.getcwd(), self.comp_spec.get('pw_name')))
-            pwlink.unlink(missing_ok=True)
-            if os.path.exists(pwlink):
-                os.remove(pwlink)
-            os.symlink(os.path.join(self.comp_spec.get('pw_loc'), self.comp_spec.get('pw_name')), pwlink)
 
         def build(atom_to_run):
             """Build
