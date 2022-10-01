@@ -1,0 +1,65 @@
+---
+###################################################################################
+#Configuration file used to run high-troughput calculation using STATE (or QE) code
+#v.0.1
+###################################################################################
+
+comp_spec:
+     csv_loc: ./list_of_single_atoms.csv # Location of csv file
+     pw_loc: /home/krojas/apps/qe/qe-7.0/_build/bin  # Location of executable file
+     pw_name: pw.x
+     pseudo_loc: /home/krojas/apps/qe_pseudo/gbrv   # Location of pseudopotentials directory
+     n_cpus: 16                          # Number of allocated cpus for each calculation
+     n_nodes: 1                          # Number of allocated node(s) for each calculation
+     prefix: atom_run_                         # Prefix for the directory name
+system_spec:
+     type: Atom                        # One of the following: Atom, Bulk, Molecule, Surface, Adsorption
+     fix_params:
+        Vacuum: 30.0                   # If type is Atom, Molecule, or Surface
+        Alat: from_ase                 # If type is Bulk or surface
+        Size: (1,1,1)                  # If type is Surface
+#     vary_params:
+
+dft_spec:
+    name: QE                             # Can be STATE or QE
+    fix_params:                          # List of fixed parameters for each calculation
+        "CALCULATION": 'scf'
+        "TSTRESS": True
+        "TPRNFOR": True
+        "OUTDIR": './tmp'
+        "ECUTWFC": 50
+        "ECUTRHO": 400
+        "OCCUPATIONS": 'smearing'
+        "DEGAUSS": 0.01
+        "ELECTRON_MAXSTEP": 100
+        "CONV_THR": 0.000001
+        "MIXING_MODE": 'plain'
+        "MIXING_BETA": 0.7
+        "DIAGONALIZATION": 'david'
+        "KPTS": [1,1,1]
+    vary_params:                         # List of STATE parameters to be read from csv file
+        - "XCTYPE"
+        - "PSEUDOS"
+
+#Established_Database:
+    Single_atom_database: ./Atoms_database.db  
+
+compute_properties:
+    - Lattice_constant
+    - Cohesive_energy
+    - Dissociation_energy
+    - Surface_energy
+    - Custom
+
+archieve_option:
+     name_format: unique_id               # Name of archieve file.
+     file_format: json                    # Type of archive file. Can be json or db
+
+post_processing:
+     Find_converged_cutoff:
+        reference: Eads                   # Should have been defined in compute_properties
+     Find_converged_kpt:
+        reference: Eads
+     Optimize_lattice_constant: True
+     Relax:
+        Optimizer: Min-hopping
