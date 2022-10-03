@@ -34,24 +34,56 @@ def write_jobscript(batch_obj, jobinfo, jobopt=None, ext="job"):
     # Serial job script
     def write_job_serial():
         """Create serial job script"""
-        with open(f"{prefix}.{ext}", 'w') as fo:
+        bashfile = f"{prefix}{ext}.sh"
+        with open(bashfile, 'w') as fo:
             fo.write("# SERIAL FORMAT"+'\n\n')
             for idx, val in jobinfo.items():
                 fo.write(f"# Run system with idx {idx:04d}" + '\n')
                 fo.write(f"pushd {val['cwd']}"+'\n')
                 fo.write(command(exe_command, val['input_file'], val['output_file']) + '\n')
                 fo.write("popd" + '\n\n')
+        
+        # Usage guide
+        print("~ "*30)
+        print("USAGE OF SERIAL JOBSCRIPT:")
+        print(f"Add `bash {bashfile}` in main JOBSCRIPT")
+        print("~ "*30)
 
     # Parallel job script
     def write_job_parallel():
         """Create parallel job script"""
-        with open(f"{prefix}.{ext}", 'w') as fo:
+        # Create job dictionary
+        dictfile = f"{prefix}{ext}dict.json"
+        with open(dictfile, 'w') as fo:
             content = {}
             for idx, val in jobinfo.items():
-                content[idx+1] = {'dir':val['cwd'], 
-                                'command':command(exe_command, val['input_file'], val['output_file'])}
+                content[idx+1] = {'dir':val['cwd'],
+                                'command':command(exe_command, 
+                                                  val['input_file'], 
+                                                  val['output_file'])}
             json_content = json.dumps(content, indent=2)
             fo.write(json_content)
+
+        # Create job python script handler
+        # Runs the specified folder and command based on array index (index starts at 1 for compatability)
+        pyfile = f"{prefix}{ext}script.py"
+        with open(pyfile, 'w') as fo:
+            fo.write(f"import os, sys, json, subprocess\n")
+            fo.write(f"index = sys.argv[1]\n")
+            fo.write(f"with open('{dictfile}', 'r') as read_file:\n")
+            fo.write(f"  jobdict = json.load(read_file)\n\n")
+            fo.write(f"os.chdir(jobdict[index]['dirname'])\n")
+            fo.write(f"subprocess.run(jobdict[index]['command'], shell=True)\n")
+
+        # Usage guide
+        print("~ "*30)
+        print("USAGE OF PARALLEL JOBSCRIPT:")
+        print("Add the following code into the main JOBSCRIPT file")
+        print("For SGE (Queue Manager)")
+        print(f"   `python3 {pyfile} $SGE_TASK_ID`")
+        print("For SLURM (Queue Manager)")
+        print(f"   `python3 {pyfile} $SLURM_ARRAY_TASK_ID`")
+        print("~ "*30)
 
     # MAIN PROTOCOL
     if jobopt.lower() == 'serial':
