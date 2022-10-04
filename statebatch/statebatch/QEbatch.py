@@ -10,6 +10,7 @@ from ase.data import atomic_masses, atomic_numbers
 from ase.db import connect
 import yaml
 from pprint import pprint
+from .jobutils import *
 
 class Batch:
     """Batch wrapper
@@ -33,7 +34,10 @@ class Batch:
         df = pd.read_csv(self.comp_spec.get('csv_loc'))
         self.atoms_to_run = df.to_dict(orient='index')
 
-    def prerun(self):
+        # Initializing class objects
+        self.jobinfo = {}
+
+    def prerun(self, make_jobscript=None):
         """Prepares work directory and run files"""
         def manage_system_params():
             """Passes system `fix_params` to atoms_to_run dictionary"""
@@ -138,12 +142,31 @@ class Batch:
             self.atoms_obj.calc = Espresso(label=label, **input_data)
             self.atoms_obj.calc.write_input(self.atoms_obj)
             self.atoms_obj.write(f"{label}.xyz")
+            
+            return (atoms_obj, input_file, output_file)
 
         # Run prerun for all systems in CSV
         manage_system_params()
         for idx in range(len(self.atoms_to_run)):
+            
+            cwd = os.getcwd()
+            dirname = self.comp_spec.get('prefix')+str('{:04d}'.format(idx))
+            os.makedirs(dirname, exist_ok=True)
+            os.chdir(dirname)
+            _, input_file, output_file = build(self.atoms_to_run[idx])
+            os.chdir('../')
+            
             dirname = self.comp_spec.get('prefix')+str(idx)
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
             build(self.atoms_to_run[idx])
             os.chdir('../')
+
+            # Save jobinfo
+            self.jobinfo[idx] = {'idx':idx,
+                                 'cwd':os.path.join(cwd,dirname),
+                                 'input_file':input_file,
+                                 'output_file': output_file}
+
+        if make_jobscript is not None:
+            write_jobscript(batch_obj=self, jobinfo=self.jobinfo, jobopt=make_jobscript)
