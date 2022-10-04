@@ -54,9 +54,6 @@ class Batch:
             for param in self.dft_spec.get('vary_params'):
                 input_data[param] = atom_to_run[param]
 
-            pprint(atom_to_run)
-            pprint(input_data)
-
             # Pseudopotential preparation
             # -- Atomic mass not implemented here --
             pseudos = atom_to_run['PSEUDOS']
@@ -142,13 +139,13 @@ class Batch:
             atoms_obj.calc = Espresso(label=label, **input_data)
             atoms_obj.calc.write_input(atoms_obj)
             atoms_obj.write(f"{label}.xyz")
-            
+
             return (atoms_obj, input_file, output_file)
 
         # Run prerun for all systems in CSV
         manage_system_params()
         for idx in range(len(self.atoms_to_run)):
-            
+
             cwd = os.getcwd()
             dirname = self.comp_spec.get('prefix')+str('{:04d}'.format(idx))
             os.makedirs(dirname, exist_ok=True)
