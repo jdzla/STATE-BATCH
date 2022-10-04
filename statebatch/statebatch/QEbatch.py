@@ -101,16 +101,16 @@ class Batch:
             """
             if (self.system_spec.get('type') == 'Atom'):
                 _atoms       = atom_to_run['Species']
-                self.atoms_obj = Atoms(_atoms)
-                self.atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
+                atoms_obj = Atoms(_atoms)
+                atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
             elif (self.system_spec.get('type') == 'Molecule'):
                 _atoms = atom_to_run['Molecule']
-                self.atoms_obj = molecule(_atoms)
-                self.atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
+                atoms_obj = molecule(_atoms)
+                atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
             elif (self.system_spec.get('type') == 'Bulk'):
                 _atoms = atom_to_run['Bulk']
                 crystalstructure = atom_to_run['Crystalstructure']
-                self.atoms_obj = bulk(_atoms, crystalstructure=crystalstructure)
+                atoms_obj = bulk(_atoms, crystalstructure=crystalstructure)
             elif (self.system_spec.get('type') == 'Surface' or self.system_spec.get('type') == 'Adsorption'):
                 _atoms = atom_to_run['Surface']
                 crystalstructure = atom_to_run['Crystalstructure']
@@ -118,30 +118,30 @@ class Batch:
                 size = eval(atom_to_run['Size'])
                 vacuum = 0.5*atom_to_run['Vacuum']
                 if (crystalstructure+facet == 'fcc100'):
-                    self.atoms_obj = fcc100(_atoms, size=size, vacuum=vacuum)
+                    atoms_obj = fcc100(_atoms, size=size, vacuum=vacuum)
                 elif (crystalstructure+facet == 'fcc110'):
-                    self.atoms_obj = fcc110(_atoms, size=size, vacuum=vacuum)
+                    atoms_obj = fcc110(_atoms, size=size, vacuum=vacuum)
                 elif (crystalstructure+facet == 'fcc111'):
-                    self.atoms_obj = fcc111(_atoms, size=size, vacuum=vacuum)
+                    atoms_obj = fcc111(_atoms, size=size, vacuum=vacuum)
                 elif (crystalstructure+facet == 'bcc100'):
-                    self.atoms_obj = bcc100(_atoms, size=size, vacuum=system_vacuum)
+                    atoms_obj = bcc100(_atoms, size=size, vacuum=system_vacuum)
                 elif (crystalstructure+facet == 'bcc110'):
-                    self.atoms_obj = bcc110(_atoms, size=size, vacuum=system_vacuum)
+                    atoms_obj = bcc110(_atoms, size=size, vacuum=system_vacuum)
                 elif (crystalstructure+facet == 'bcc111'):
-                    self.atoms_obj = bcc111(_atoms, size=size, vacuum=system_vacuum)
+                    atoms_obj = bcc111(_atoms, size=size, vacuum=system_vacuum)
 
                 if (self.system_spec.get('type') == 'Adsorption'):
                     _adsorbate = atom_to_run['Adsorbate']
-                    self.adsorbate_obj = molecule(_adsorbate)
-                    add_adsorbate(self.atoms_obj, self.adsorbate_obj, height = atom_to_run['Height'], position = atom_to_run['Site'])
+                    adsorbate_obj = molecule(_adsorbate)
+                    add_adsorbate(atoms_obj, adsorbate_obj, height = atom_to_run['Height'], position = atom_to_run['Site'])
 
             # Finalize input_data and input file
             input_data = get_dft_params(atom_to_run)
             label = f"{_atoms}"
             input_file, output_file = f"{label}.in", f"{label}.out"
-            self.atoms_obj.calc = Espresso(label=label, **input_data)
-            self.atoms_obj.calc.write_input(self.atoms_obj)
-            self.atoms_obj.write(f"{label}.xyz")
+            atoms_obj.calc = Espresso(label=label, **input_data)
+            atoms_obj.calc.write_input(atoms_obj)
+            atoms_obj.write(f"{label}.xyz")
             
             return (atoms_obj, input_file, output_file)
 
@@ -154,12 +154,6 @@ class Batch:
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
             _, input_file, output_file = build(self.atoms_to_run[idx])
-            os.chdir('../')
-            
-            dirname = self.comp_spec.get('prefix')+str(idx)
-            os.makedirs(dirname, exist_ok=True)
-            os.chdir(dirname)
-            build(self.atoms_to_run[idx])
             os.chdir('../')
 
             # Save jobinfo
