@@ -42,7 +42,7 @@ def write_jobscript(batch_obj, jobinfo, jobopt=None, ext="job"):
                 fo.write(f"pushd {val['cwd']}"+'\n')
                 fo.write(command(exe_command, val['input_file'], val['output_file']) + '\n')
                 fo.write("popd" + '\n\n')
-        
+
         # Usage guide
         print("~ "*30)
         print("USAGE OF SERIAL JOBSCRIPT:")
@@ -58,8 +58,8 @@ def write_jobscript(batch_obj, jobinfo, jobopt=None, ext="job"):
             content = {}
             for idx, val in jobinfo.items():
                 content[idx+1] = {'dir':val['cwd'],
-                                'command':command(exe_command, 
-                                                  val['input_file'], 
+                                'command':command(exe_command,
+                                                  val['input_file'],
                                                   val['output_file'])}
             json_content = json.dumps(content, indent=2)
             fo.write(json_content)
@@ -69,7 +69,11 @@ def write_jobscript(batch_obj, jobinfo, jobopt=None, ext="job"):
         pyfile = f"{prefix}{ext}script.py"
         with open(pyfile, 'w') as fo:
             fo.write(f"import os, sys, json, subprocess\n")
-            fo.write(f"index = sys.argv[1]\n")
+            fo.write(f"from argparse import ArgumentParser\n\n")
+            fo.write('parser = ArgumentParser()\n')
+            fo.write("parser.add_argument('-i', '--run_idx', type=int, default=1)\n")
+            fo.write("args = parser.parse_args()\n")
+            fo.write("index = args.run_idx\n\n")
             fo.write(f"with open('{dictfile}', 'r') as read_file:\n")
             fo.write(f"  jobdict = json.load(read_file)\n\n")
             fo.write(f"os.chdir(jobdict[index]['dirname'])\n")
@@ -79,10 +83,9 @@ def write_jobscript(batch_obj, jobinfo, jobopt=None, ext="job"):
         print("~ "*30)
         print("USAGE OF PARALLEL JOBSCRIPT:")
         print("Add the following code into the main JOBSCRIPT file")
-        print("For SGE (Queue Manager)")
-        print(f"   `python3 {pyfile} $SGE_TASK_ID`")
-        print("For SLURM (Queue Manager)")
-        print(f"   `python3 {pyfile} $SLURM_ARRAY_TASK_ID`")
+        print(f"   `python3 {pyfile} --run_idx $ARRAY_TASK_ID`")
+        print(f"where $ARRAY_TASK_ID is the array task id variable of the queue-ing system")
+        print(f"i.e. $SGE_TASK_ID (SGE) and $SLURM_ARRAY_TASK_ID (SLURM)")
         print("~ "*30)
 
     # MAIN PROTOCOL
