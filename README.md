@@ -31,3 +31,8 @@ The csv file contains the list of the system to be run in high-throughput fashio
 
 - **run.py**\
 This python code is used to run STATE-BATCH.
+
+
+Authors:
+Harry 
+Kurt
