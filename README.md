@@ -56,3 +56,10 @@ bash atom_run_job.sh
 python3 atom_run_jobscript.py --idx $SGE_TASK_ID
 
 ```
+=======
+
+Authors:
+Harry 
+Kurt
+ACFS
+Teb (more)
