@@ -140,7 +140,7 @@ class Batch:
                 label = f"pw"
 
             input_file, output_file = f"{label}.in", f"{label}.out"
-            atoms_obj.calc = STATE(label=label, input_data=input_data)
+            atoms_obj.calc = Espresso(label=label, **input_data)
             atoms_obj.calc.write_input(atoms_obj)
             atoms_obj.write(f"{_atoms}.xyz")        #For using prefix: atoms_obj.write(f"{label}.xyz")
 
