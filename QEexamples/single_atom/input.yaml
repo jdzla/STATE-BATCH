@@ -12,6 +12,7 @@ comp_spec:
      n_cpus: 16                          # Number of allocated cpus for each calculation
      n_nodes: 1                          # Number of allocated node(s) for each calculation
      prefix: atom_run_                         # Prefix for the directory name
+     fileprefix: pwrun
 system_spec:
      type: Atom                        # One of the following: Atom, Bulk, Molecule, Surface, Adsorption
      fix_params:
@@ -42,7 +43,7 @@ dft_spec:
         - "PSEUDOS"
 
 #Established_Database:
-    Single_atom_database: ./Atoms_database.db  
+    Single_atom_database: ./Atoms_database.db
 
 compute_properties:
     - Lattice_constant
