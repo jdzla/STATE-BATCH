@@ -137,7 +137,7 @@ class Batch:
             if self.comp_spec.get('fileprefix'):
                 label = self.comp_spec.get('fileprefix')
             else:
-                label = f"state"
+                label = f"pw"
 
             input_file, output_file = f"{label}.in", f"{label}.out"
             atoms_obj.calc = STATE(label=label, input_data=input_data)
