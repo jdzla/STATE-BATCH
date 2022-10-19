@@ -134,10 +134,10 @@ class Batch:
 
             # Finalize input_data and input file
             input_data = get_dft_params(atom_to_run)
-            if self.comp_spec.get('fileprefix'):
-                label = self.comp_spec.get('fileprefix')
+            if self.comp_spec.get('file_prefix'):
+                label = self.comp_spec.get('file_prefix')
             else:
-                label = f"pw"
+                label = f"espresso"
 
             input_file, output_file = f"{label}.in", f"{label}.out"
             atoms_obj.calc = Espresso(label=label, **input_data)

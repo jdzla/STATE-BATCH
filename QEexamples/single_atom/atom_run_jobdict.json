@@ -1,0 +1,38 @@
+{
+  "1": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0000",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "2": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0001",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "3": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0002",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "4": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0003",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "5": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0004",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "6": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0005",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "7": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0006",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "8": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0007",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  },
+  "9": {
+    "dir": "/home2/bctan/STATE-BATCH/STATE-BATCH/QEexamples/single_atom/atom_run_0008",
+    "command": "./pw.x < pwrun.in > pwrun.out"
+  }
+}

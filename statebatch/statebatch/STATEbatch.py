@@ -96,8 +96,8 @@ class Batch:
 
 
             input_data = get_dft_params(atom_to_run)
-            if self.comp_spec.get('fileprefix'):
-                label = self.comp_spec.get('fileprefix')
+            if self.comp_spec.get('file_prefix'):
+                label = self.comp_spec.get('file_prefix')
             else:
                 label = f"state"
 
