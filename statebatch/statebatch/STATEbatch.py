@@ -96,11 +96,15 @@ class Batch:
 
 
             input_data = get_dft_params(atom_to_run)
-            label = f"{_atoms}"
+            if self.comp_spec.get('file_prefix'):
+                label = self.comp_spec.get('file_prefix')
+            else:
+                label = f"state"
+
             input_file, output_file = f"{label}.in", f"{label}.out"
             atoms_obj.calc = STATE(label=label, input_data=input_data)
             atoms_obj.calc.write_input(atoms_obj)
-            atoms_obj.write(f"{label}.xyz")
+            atoms_obj.write(f"{_atoms}.xyz")        #For using prefix: atoms_obj.write(f"{label}.xyz")
 
             return (atoms_obj, input_file, output_file)
 
@@ -122,5 +126,3 @@ class Batch:
 
         if make_jobscript is not None:
             write_jobscript(batch_obj=self, jobinfo=self.jobinfo, jobopt=make_jobscript)
-
-
