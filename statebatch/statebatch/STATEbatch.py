@@ -19,11 +19,14 @@ class Batch:
         self.system_spec = config.get('system_spec')
         self.comp_spec   = config.get('comp_spec')
         self.dft_spec    = config.get('dft_spec')
-        
+
         df          = pd.read_csv(self.comp_spec.get('csv_loc'))
         self.atoms_to_run = df.to_dict(orient='index')
 
-    def prerun(self, make_jobscript=False):
+        # Initializing class objects
+        self.jobinfo = {}
+
+    def prerun(self, make_jobscript=None):
         def manage_system_params():
             for param in self.system_spec.get('fix_params'):
                 for idx in range(len(self.atoms_to_run)):
@@ -110,7 +113,14 @@ class Batch:
             link()
             _, input_file, output_file = build(self.atoms_to_run[idx])
             os.chdir('../')
-            if make_jobscript is True: 
-                write_jobscript(self, idx, os.path.join(cwd,dirname), input_file, output_file) 
 
-        
+            # Save jobinfo
+            self.jobinfo[idx] = {'idx':idx,
+                                 'cwd':os.path.join(cwd,dirname),
+                                 'input_file':input_file,
+                                 'output_file': output_file}
+
+        if make_jobscript is not None:
+            write_jobscript(batch_obj=self, jobinfo=self.jobinfo, jobopt=make_jobscript)
+
+
