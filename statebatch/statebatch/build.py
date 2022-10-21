@@ -16,13 +16,14 @@ from ase.build import (
 def build_atoms_structure(atom_to_run, system_spec):
     """Build
 
-    Atomic structure builder and input file writer
+    Atomic structure builder
 
     Parameters
     ----------
     atom_to_run : dict
         Atomic structure dictionary
-    system_spec :
+    system_spec : dict
+        Information about the system to be calculated
 
     """
     if system_spec.get("type") == "Atom":
@@ -68,4 +69,4 @@ def build_atoms_structure(atom_to_run, system_spec):
                 position=atom_to_run["Site"],
             )
 
-        return atoms_obj, _atoms
+    return atoms_obj, _atoms

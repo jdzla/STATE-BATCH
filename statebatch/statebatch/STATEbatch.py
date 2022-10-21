@@ -53,8 +53,10 @@ class Batch:
             if os.path.exists(pwlink):
                 os.remove(pwlink)
             os.symlink(os.path.join(self.comp_spec.get('pw_loc'), self.comp_spec.get('pw_name')), pwlink)
+
+        
         def build(atom_to_run):
-            atoms_obj, _atoms = build_atoms_structure(atom_to_run)
+            atoms_obj, _atoms = build_atoms_structure(atom_to_run, self.system_spec)
 
             input_data = get_dft_params(atom_to_run)
             if self.comp_spec.get('file_prefix'):

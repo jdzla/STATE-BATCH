@@ -89,7 +89,7 @@ class Batch:
             atom_to_run : dict
                 Atomic structure dictionary
             """
-            atoms_obj, _atoms = build_atoms_structure(atom_to_run)
+            atoms_obj, _atoms = build_atoms_structure(atom_to_run, self.system_spec)
 
             # Finalize input_data and input file
             input_data = get_dft_params(atom_to_run)
