@@ -1,16 +1,9 @@
-import os, sys
-from pathlib import Path
-from datetime import datetime
-import numpy as np
+import os
 import pandas as pd
 from ase.calculators.espresso import Espresso
-from ase import Atoms
-from ase.build import molecule, bulk, fcc100, fcc110, fcc111, bcc100, bcc110, bcc111, add_adsorbate
-from ase.data import atomic_masses, atomic_numbers
-from ase.db import connect
 import yaml
-from pprint import pprint
 from .jobutils import *
+from statebatch.build import build_atoms_structure
 
 class Batch:
     """Batch wrapper
@@ -96,41 +89,7 @@ class Batch:
             atom_to_run : dict
                 Atomic structure dictionary
             """
-            if (self.system_spec.get('type') == 'Atom'):
-                _atoms       = atom_to_run['Species']
-                atoms_obj = Atoms(_atoms)
-                atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
-            elif (self.system_spec.get('type') == 'Molecule'):
-                _atoms = atom_to_run['Molecule']
-                atoms_obj = molecule(_atoms)
-                atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
-            elif (self.system_spec.get('type') == 'Bulk'):
-                _atoms = atom_to_run['Bulk']
-                crystalstructure = atom_to_run['Crystalstructure']
-                atoms_obj = bulk(_atoms, crystalstructure=crystalstructure)
-            elif (self.system_spec.get('type') == 'Surface' or self.system_spec.get('type') == 'Adsorption'):
-                _atoms = atom_to_run['Surface']
-                crystalstructure = atom_to_run['Crystalstructure']
-                facet = str(atom_to_run['Facet'])
-                size = eval(atom_to_run['Size'])
-                vacuum = 0.5*atom_to_run['Vacuum']
-                if (crystalstructure+facet == 'fcc100'):
-                    atoms_obj = fcc100(_atoms, size=size, vacuum=vacuum)
-                elif (crystalstructure+facet == 'fcc110'):
-                    atoms_obj = fcc110(_atoms, size=size, vacuum=vacuum)
-                elif (crystalstructure+facet == 'fcc111'):
-                    atoms_obj = fcc111(_atoms, size=size, vacuum=vacuum)
-                elif (crystalstructure+facet == 'bcc100'):
-                    atoms_obj = bcc100(_atoms, size=size, vacuum=system_vacuum)
-                elif (crystalstructure+facet == 'bcc110'):
-                    atoms_obj = bcc110(_atoms, size=size, vacuum=system_vacuum)
-                elif (crystalstructure+facet == 'bcc111'):
-                    atoms_obj = bcc111(_atoms, size=size, vacuum=system_vacuum)
-
-                if (self.system_spec.get('type') == 'Adsorption'):
-                    _adsorbate = atom_to_run['Adsorbate']
-                    adsorbate_obj = molecule(_adsorbate)
-                    add_adsorbate(atoms_obj, adsorbate_obj, height = atom_to_run['Height'], position = atom_to_run['Site'])
+            atoms_obj, _atoms = build_atoms_structure(atom_to_run)
 
             # Finalize input_data and input file
             input_data = get_dft_params(atom_to_run)
@@ -154,6 +113,7 @@ class Batch:
             dirname = self.comp_spec.get('prefix')+str('{:04d}'.format(idx))
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
+            
             _, input_file, output_file = build(self.atoms_to_run[idx])
             os.chdir('../')
 
