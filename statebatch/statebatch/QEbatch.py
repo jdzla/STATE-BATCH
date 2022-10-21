@@ -121,11 +121,11 @@ class Batch:
                 elif (crystalstructure+facet == 'fcc111'):
                     atoms_obj = fcc111(_atoms, size=size, vacuum=vacuum)
                 elif (crystalstructure+facet == 'bcc100'):
-                    atoms_obj = bcc100(_atoms, size=size, vacuum=system_vacuum)
+                    atoms_obj = bcc100(_atoms, size=size, vacuum=vacuum)
                 elif (crystalstructure+facet == 'bcc110'):
-                    atoms_obj = bcc110(_atoms, size=size, vacuum=system_vacuum)
+                    atoms_obj = bcc110(_atoms, size=size, vacuum=vacuum)
                 elif (crystalstructure+facet == 'bcc111'):
-                    atoms_obj = bcc111(_atoms, size=size, vacuum=system_vacuum)
+                    atoms_obj = bcc111(_atoms, size=size, vacuum=vacuum)
 
                 if (self.system_spec.get('type') == 'Adsorption'):
                     _adsorbate = atom_to_run['Adsorbate']
