@@ -5,7 +5,7 @@ from state_interface.state import STATE
 from ase.data import atomic_masses, atomic_numbers
 import yaml
 from .jobutils import *
-from statebatch.build import build_atoms_structure
+from statebatch.build import build
 
 class Batch:
     def __init__(self, yaml_f):
@@ -55,21 +55,23 @@ class Batch:
             os.symlink(os.path.join(self.comp_spec.get('pw_loc'), self.comp_spec.get('pw_name')), pwlink)
 
         
-        def build(atom_to_run):
-            atoms_obj, _atoms = build_atoms_structure(atom_to_run, self.system_spec)
+        # def build(atom_to_run, input_data, system_spec, file_prefix=None):
+        #     atoms_obj, _atoms = build_atoms_structure(atom_to_run, system_spec)
 
-            input_data = get_dft_params(atom_to_run)
-            if self.comp_spec.get('file_prefix'):
-                label = self.comp_spec.get('file_prefix')
-            else:
-                label = f"state"
+        #     # input_data = get_dft_params(atom_to_run)
+        #     # if self.comp_spec.get('file_prefix'):
+        #     #     label = self.comp_spec.get('file_prefix')
+        #     if file_prefix:
+        #         label=file_prefix
+        #     else:
+        #         label = f"state"
 
-            input_file, output_file = f"{label}.in", f"{label}.out"
-            atoms_obj.calc = STATE(label=label, input_data=input_data)
-            atoms_obj.calc.write_input(atoms_obj)
-            atoms_obj.write(f"{_atoms}.xyz")        #For using prefix: atoms_obj.write(f"{label}.xyz")
+        #     input_file, output_file = f"{label}.in", f"{label}.out"
+        #     atoms_obj.calc = STATE(label=label, input_data=input_data)
+        #     atoms_obj.calc.write_input(atoms_obj)
+        #     atoms_obj.write(f"{_atoms}.xyz")        #For using prefix: atoms_obj.write(f"{label}.xyz")
 
-            return (atoms_obj, input_file, output_file)
+        #     return (atoms_obj, input_file, output_file)
 
         manage_system_params()
         for idx in range(len(self.atoms_to_run)):
@@ -78,7 +80,11 @@ class Batch:
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
             link()
-            _, input_file, output_file = build(self.atoms_to_run[idx])
+            _, input_file, output_file = build(self.atoms_to_run[idx], 
+                                               get_dft_params(self.atoms_to_run[idx]),
+                                               system_spec=self.system_spec,
+                                               file_prefix=self.comp_spec.get('file_prefix'),
+                                               calc_name = self.dft_spec.get('name'))
             os.chdir('../')
 
             # Save jobinfo
