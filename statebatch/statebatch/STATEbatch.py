@@ -66,7 +66,7 @@ class Batch:
             _, input_file, output_file = build(atom_to_run=self.atoms_to_run[idx],
                                                input_data=input_data,
                                                system_spec=self.system_spec,
-                                               calc_name=self.dft_spec.get("name")
+                                               calc_name=self.dft_spec.get("name"),
                                                file_prefix=self.comp_spec.get("file_prefix")
                                                )
             os.chdir('../')

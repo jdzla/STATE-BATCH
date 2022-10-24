@@ -93,7 +93,6 @@ class Batch:
                                                calc_name=self.dft_spec.get("name"),
                                                file_prefix=self.comp_spec.get("file_prefix")
                                                )
-            
             os.chdir('../')
 
             # Save jobinfo
