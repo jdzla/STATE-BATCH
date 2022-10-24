@@ -1,9 +1,9 @@
 import os
 import pandas as pd
-from ase.calculators.espresso import Espresso
 import yaml
 from .jobutils import *
-from statebatch.build import build_atoms_structure
+from statebatch.build import build
+
 
 class Batch:
     """Batch wrapper
@@ -38,13 +38,13 @@ class Batch:
                 for idx in range(len(self.atoms_to_run)):
                     self.atoms_to_run[idx][param] = self.system_spec.get('fix_params').get(param)
 
-        def get_dft_params(atom_to_run):
+        def get_dft_params(atom_to_run, dft_spec, comp_spec):
             """Distributes dft parameters to calculator input"""
             # Initialize input_data
-            input_data = self.dft_spec.get('fix_params').copy()
+            input_data = dft_spec.get('fix_params').copy()
 
             # Replace template params with vary_params
-            for param in self.dft_spec.get('vary_params'):
+            for param in dft_spec.get('vary_params'):
                 input_data[param] = atom_to_run[param]
 
             # Pseudopotential preparation
@@ -57,8 +57,8 @@ class Batch:
                 pseudopotentials[element] = pseudo_file
             input_data.pop('PSEUDOS', 'not_found')
 
-            input_data['pseudopotentials'] = pseudopotentials # **
-            input_data['PSEUDO_DIR'] = self.comp_spec.get('pseudo_loc')
+            input_data['pseudopotentials'] = pseudopotentials
+            input_data['PSEUDO_DIR'] = comp_spec.get('pseudo_loc')
 
             # XC functional preparation
             if {'input_dft', 'vdw_corr'} <=  input_data.keys():
@@ -78,33 +78,6 @@ class Batch:
             input_data['kpts'] = kpts
 
             return (input_data)
-
-        def build(atom_to_run):
-            """Build
-
-            Atomic structure builder and input file writer
-
-            Parameters
-            ----------
-            atom_to_run : dict
-                Atomic structure dictionary
-            """
-            atoms_obj, _atoms = build_atoms_structure(atom_to_run, self.system_spec)
-
-            # Finalize input_data and input file
-            input_data = get_dft_params(atom_to_run)
-            if self.comp_spec.get('file_prefix'):
-                label = self.comp_spec.get('file_prefix')
-            else:
-                label = f"espresso"
-
-            input_file, output_file = f"{label}.in", f"{label}.out"
-            atoms_obj.calc = Espresso(label=label, **input_data)
-            atoms_obj.calc.write_input(atoms_obj)
-            atoms_obj.write(f"{_atoms}.xyz")        #For using prefix: atoms_obj.write(f"{label}.xyz")
-
-            return (atoms_obj, input_file, output_file)
-
         # Run prerun for all systems in CSV
         manage_system_params()
         for idx in range(len(self.atoms_to_run)):
@@ -113,6 +86,12 @@ class Batch:
             dirname = self.comp_spec.get('prefix')+str('{:04d}'.format(idx))
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
+            input_data = get_dft_params(self.atoms_to_run[idx], self.dft_spec, self.comp_spec)
+            _, input_file, output_file = build(atom_to_run=self.atoms_to_run[idx],
+                                               input_data=input_data,
+                                               system_spec=self.system_spec,
+                                               file_prefix=self.comp_spec.get("file_prefix"),
+                                               calc_name=self.dft_spec.get("name"))
             
             _, input_file, output_file = build(self.atoms_to_run[idx])
             os.chdir('../')
