@@ -56,6 +56,17 @@ bash atom_run_job.sh
 python3 atom_run_jobscript.py --idx $SGE_TASK_ID
 
 ```
+
+## Tests
+To confirm that this package is working correctly, we have implemented our tests using `pytest`.
+
+```bash
+# install pytest
+pip install pytest
+# run all tests
+pytest
+```
+
 =======
 
 Authors:
@@ -63,3 +74,4 @@ Harry
 Kurt
 ACFS
 Teb
+Ryo
