@@ -12,29 +12,28 @@ from ase.build import (
     add_adsorbate,
 )
 from state_interface.state import STATE
+from ase.calculators.espresso import Espresso
+
 
 def build(atom_to_run, input_data, system_spec, calc_name, file_prefix=None):
     atoms_obj, _atoms = build_atoms_structure(atom_to_run, system_spec)
-
-    # input_data = get_dft_params(atom_to_run)
-    # if self.comp_spec.get('file_prefix'):
-    #     label = self.comp_spec.get('file_prefix')
     if file_prefix:
-        label=file_prefix
+        label = file_prefix
     else:
-        if calc_name == 'STATE':
-            label = f"state"
+        if calc_name == "STATE":
+            label = "state"
         if calc_name == 'QE':
             label = "espresso"
 
-    if calc_name == 'STATE':
+    if calc_name == "STATE":
         input_file, output_file = f"{label}.in", f"{label}.out"
         atoms_obj.calc = STATE(label=label, input_data=input_data)
-    elif calc_name == 'QE':
+    elif calc_name == "QE":
         input_file, output_file = f"{label}.pwi", f"{label}.pwo"
         atoms_obj.calc = Espresso(label=label, **input_data)
     atoms_obj.calc.write_input(atoms_obj)
-    atoms_obj.write(f"{_atoms}.xyz")        #For using prefix: atoms_obj.write(f"{label}.xyz")
+    # For using prefix: atoms_obj.write(f"{label}.xyz")
+    atoms_obj.write(f"{_atoms}.xyz")
 
     return (atoms_obj, input_file, output_file)
 
