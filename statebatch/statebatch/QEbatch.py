@@ -90,10 +90,10 @@ class Batch:
             _, input_file, output_file = build(atom_to_run=self.atoms_to_run[idx],
                                                input_data=input_data,
                                                system_spec=self.system_spec,
-                                               file_prefix=self.comp_spec.get("file_prefix"),
-                                               calc_name=self.dft_spec.get("name"))
+                                               calc_name=self.dft_spec.get("name"),
+                                               file_prefix=self.comp_spec.get("file_prefix")
+                                               )
             
-            _, input_file, output_file = build(self.atoms_to_run[idx])
             os.chdir('../')
 
             # Save jobinfo

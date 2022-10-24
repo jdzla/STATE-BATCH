@@ -62,12 +62,13 @@ class Batch:
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
             link()
-            input_data = get_dft_params(self.atoms_to_run[idx], self.dft_spec)
+            input_data = get_dft_params(self.atoms_to_run[idx], self.dft_spec, self.comp_spec)
             _, input_file, output_file = build(atom_to_run=self.atoms_to_run[idx],
                                                input_data=input_data,
                                                system_spec=self.system_spec,
-                                               file_prefix=self.comp_spec.get("file_prefix"),
-                                               calc_name=self.dft_spec.get("name"))
+                                               calc_name=self.dft_spec.get("name")
+                                               file_prefix=self.comp_spec.get("file_prefix")
+                                               )
             os.chdir('../')
 
             # Save jobinfo
