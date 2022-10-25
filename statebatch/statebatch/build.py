@@ -7,6 +7,7 @@ from ase.build import (
 )
 from state_interface.state import STATE
 from ase.calculators.espresso import Espresso
+import importlib
 
 
 def build(atom_to_run, input_data, system_spec, calc_name, file_prefix=None):
@@ -66,7 +67,7 @@ def build_atoms_structure(atom_to_run, system_spec):
         size = eval(atom_to_run["Size"])
         vacuum = 0.5 * atom_to_run["Vacuum"]
         surface_builder_function = getattr(
-            __import__('ase').build,
+            importlib.import_module('ase.build'),
             crystalstructure + facet
         )
         atoms_obj = surface_builder_function(_atoms, size=size, vacuum=vacuum)
