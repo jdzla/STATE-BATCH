@@ -58,9 +58,7 @@ def build_atoms_structure(atom_to_run, system_spec):
         _atoms = atom_to_run["Bulk"]
         crystalstructure = atom_to_run["Crystalstructure"]
         atoms_obj = bulk(_atoms, crystalstructure=crystalstructure)
-    elif (
-        system_spec.get("type") == "Surface" or system_spec.get("type") == "Adsorption"
-    ):
+    elif system_spec.get("type") in ["Surface", "Adsorption"]:
         _atoms = atom_to_run["Surface"]
         crystalstructure = atom_to_run["Crystalstructure"]
         facet = str(atom_to_run["Facet"])
