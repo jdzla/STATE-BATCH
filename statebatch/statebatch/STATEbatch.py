@@ -56,14 +56,15 @@ class Batch:
             os.symlink(os.path.join(self.comp_spec.get('pw_loc'), self.comp_spec.get('pw_name')), pwlink)
 
         manage_system_params()
-        for idx in range(len(self.atoms_to_run)):
+        for idx, atom_to_run in enumerate(self.atoms_to_run.values(), start=1):
             cwd = os.getcwd()
             dirname = self.comp_spec.get('prefix')+str('{:04d}'.format(idx))
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
             link()
-            input_data = get_dft_params(self.atoms_to_run[idx], self.dft_spec, self.comp_spec)
-            _, input_file, output_file = build(atom_to_run=self.atoms_to_run[idx],
+
+            input_data = get_dft_params(atom_to_run, self.dft_spec, self.comp_spec)
+            _, input_file, output_file = build(atom_to_run=atom_to_run,
                                                input_data=input_data,
                                                system_spec=self.system_spec,
                                                calc_name=self.dft_spec.get("name"),

@@ -57,7 +57,7 @@ def write_jobscript(batch_obj, jobinfo, jobopt=None, ext="job"):
         with open(dictfile, 'w') as fo:
             content = {}
             for idx, val in jobinfo.items():
-                content[idx+1] = {'dir':val['cwd'],
+                content[idx] = {'dir':val['cwd'],
                                 'command':command(exe_command,
                                                   val['input_file'],
                                                   val['output_file'])}
