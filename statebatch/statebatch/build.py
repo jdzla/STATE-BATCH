@@ -3,16 +3,11 @@ import numpy as np
 from ase.build import (
     molecule,
     bulk,
-    fcc100,
-    fcc110,
-    fcc111,
-    bcc100,
-    bcc110,
-    bcc111,
     add_adsorbate,
 )
 from state_interface.state import STATE
 from ase.calculators.espresso import Espresso
+import importlib
 
 
 def build(atom_to_run, input_data, system_spec, calc_name, file_prefix=None):
@@ -63,26 +58,17 @@ def build_atoms_structure(atom_to_run, system_spec):
         _atoms = atom_to_run["Bulk"]
         crystalstructure = atom_to_run["Crystalstructure"]
         atoms_obj = bulk(_atoms, crystalstructure=crystalstructure)
-    elif (
-        system_spec.get("type") == "Surface" or system_spec.get("type") == "Adsorption"
-    ):
+    elif system_spec.get("type") in ["Surface", "Adsorption"]:
         _atoms = atom_to_run["Surface"]
         crystalstructure = atom_to_run["Crystalstructure"]
         facet = str(atom_to_run["Facet"])
         size = eval(atom_to_run["Size"])
         vacuum = 0.5 * atom_to_run["Vacuum"]
-        if crystalstructure + facet == "fcc100":
-            atoms_obj = fcc100(_atoms, size=size, vacuum=vacuum)
-        elif crystalstructure + facet == "fcc110":
-            atoms_obj = fcc110(_atoms, size=size, vacuum=vacuum)
-        elif crystalstructure + facet == "fcc111":
-            atoms_obj = fcc111(_atoms, size=size, vacuum=vacuum)
-        elif crystalstructure + facet == "bcc100":
-            atoms_obj = bcc100(_atoms, size=size, vacuum=vacuum)
-        elif crystalstructure + facet == "bcc110":
-            atoms_obj = bcc110(_atoms, size=size, vacuum=vacuum)
-        elif crystalstructure + facet == "bcc111":
-            atoms_obj = bcc111(_atoms, size=size, vacuum=vacuum)
+        surface_builder_function = getattr(
+            importlib.import_module('ase.build'),
+            crystalstructure + facet
+        )
+        atoms_obj = surface_builder_function(_atoms, size=size, vacuum=vacuum)
 
         if system_spec.get("type") == "Adsorption":
             _adsorbate = atom_to_run["Adsorbate"]
