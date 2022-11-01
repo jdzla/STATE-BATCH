@@ -5,9 +5,10 @@ from ase.data import atomic_masses, atomic_numbers
 import yaml
 from .jobutils import *
 from statebatch.build import build
+import pprint
 
 class Batch:
-    def __init__(self, yaml_f):
+    def __init__(self, yaml_f, debug=False):
         with open (yaml_f, 'r') as f:
             config = yaml.safe_load(f)
 
@@ -20,6 +21,9 @@ class Batch:
 
         # Initializing class objects
         self.jobinfo = {}
+
+        # Set the debug mode
+        self.debug = debug
     
     def prerun(self, make_jobscript=None):
         def manage_system_params():
@@ -64,6 +68,9 @@ class Batch:
             link()
 
             input_data = get_dft_params(atom_to_run, self.dft_spec, self.comp_spec)
+            if self.debug:
+                pprint.pprint(input_data)
+
             _, input_file, output_file = build(atom_to_run=atom_to_run,
                                                input_data=input_data,
                                                system_spec=self.system_spec,

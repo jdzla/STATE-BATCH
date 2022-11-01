@@ -3,6 +3,7 @@ import pandas as pd
 import yaml
 from .jobutils import *
 from statebatch.build import build
+import pprint
 
 
 class Batch:
@@ -13,7 +14,7 @@ class Batch:
     yaml_f : str, path object or file-like object
         YAML file path
     """
-    def __init__(self, yaml_f):
+    def __init__(self, yaml_f, debug=False):
         # Read YAML file
         with open (yaml_f, 'r') as f:
             config = yaml.safe_load(f)
@@ -29,6 +30,9 @@ class Batch:
 
         # Initializing class objects
         self.jobinfo = {}
+
+        # Set the debug mode
+        self.debug = debug
 
     def prerun(self, make_jobscript=None):
         """Prepares work directory and run files"""
@@ -87,6 +91,9 @@ class Batch:
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
             input_data = get_dft_params(atom_to_run, self.dft_spec, self.comp_spec)
+            if self.debug:
+                pprint.pprint(input_data)
+            
             _, input_file, output_file = build(atom_to_run=atom_to_run,
                                                input_data=input_data,
                                                system_spec=self.system_spec,
