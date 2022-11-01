@@ -12,6 +12,7 @@ comp_spec:
      n_cpus: 16                          # Number of allocated cpus for each calculation
      n_nodes: 1                          # Number of allocated node(s) for each calculation
      prefix: bulk_run_                         # Prefix for the directory name
+     fileprefix: statebatch
 system_spec:
      type: Bulk                        # One of the following: Atom, Bulk, Molecule, Surface, Adsorption
      fix_params:
@@ -19,7 +20,7 @@ system_spec:
         Alat: from_ase                 # If type is Bulk or surface
         Size: (1,1,1)                  # If type is Bulk or surface
 #     vary_params:
-        
+
 
 dft_spec:
     name: STATE                          # Can be STATE or QE
@@ -43,7 +44,7 @@ dft_spec:
         - "PSEUDOS"
 
 #Established_Database:
-    Single_atom_database: ./Atoms_database.db  
+    Single_atom_database: ./Atoms_database.db
 
 compute_properties:
     - Lattice_constant

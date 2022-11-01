@@ -32,8 +32,46 @@ The csv file contains the list of the system to be run in high-throughput fashio
 - **run.py**\
 This python code is used to run STATE-BATCH.
 
+## JOBSCRIPT MAKER
+It will take `serial` or `parallel` as input. 
+
+```python
+Batch_obj.prerun(make_jobscript='serial')
+Batch_obj.prerun(make_jobscript='parallel')
+```
+
+Usage:
+1. if `make_jobscript='serial`
+
+
+```bash
+# add to jobscript
+bash atom_run_job.sh
+```
+
+2. if `make_jobscript='parallel'`
+  
+```bash
+# add to jobscript
+python3 atom_run_jobscript.py --idx $SGE_TASK_ID
+
+```
+
+## Tests
+To confirm that this package is working correctly, we have implemented our tests using `pytest`.
+
+```bash
+# install pytest
+pip install pytest
+# run all tests
+pytest
+```
+
+=======
 
 Authors:
 Harry 
 Kurt
 ACFS
+Teb
+Ryo

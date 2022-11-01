@@ -1,15 +1,10 @@
-import os, sys
-from pathlib import Path
-from datetime import datetime
-import numpy as np
+import os
 import pandas as pd
-from ase.calculators.espresso import Espresso
-from ase import Atoms
-from ase.build import molecule, bulk, fcc100, fcc110, fcc111, bcc100, bcc110, bcc111, add_adsorbate
-from ase.data import atomic_masses, atomic_numbers
-from ase.db import connect
 import yaml
-from pprint import pprint
+from .jobutils import *
+from statebatch.build import build
+import pprint
+
 
 class Batch:
     """Batch wrapper
@@ -19,7 +14,7 @@ class Batch:
     yaml_f : str, path object or file-like object
         YAML file path
     """
-    def __init__(self, yaml_f):
+    def __init__(self, yaml_f, debug=False):
         # Read YAML file
         with open (yaml_f, 'r') as f:
             config = yaml.safe_load(f)
@@ -33,7 +28,13 @@ class Batch:
         df = pd.read_csv(self.comp_spec.get('csv_loc'))
         self.atoms_to_run = df.to_dict(orient='index')
 
-    def prerun(self):
+        # Initializing class objects
+        self.jobinfo = {}
+
+        # Set the debug mode
+        self.debug = debug
+
+    def prerun(self, make_jobscript=None):
         """Prepares work directory and run files"""
         def manage_system_params():
             """Passes system `fix_params` to atoms_to_run dictionary"""
@@ -41,17 +42,14 @@ class Batch:
                 for idx in range(len(self.atoms_to_run)):
                     self.atoms_to_run[idx][param] = self.system_spec.get('fix_params').get(param)
 
-        def get_dft_params(atom_to_run):
+        def get_dft_params(atom_to_run, dft_spec, comp_spec):
             """Distributes dft parameters to calculator input"""
             # Initialize input_data
-            input_data = self.dft_spec.get('fix_params').copy()
+            input_data = dft_spec.get('fix_params').copy()
 
             # Replace template params with vary_params
-            for param in self.dft_spec.get('vary_params'):
+            for param in dft_spec.get('vary_params'):
                 input_data[param] = atom_to_run[param]
-
-            pprint(atom_to_run)
-            pprint(input_data)
 
             # Pseudopotential preparation
             # -- Atomic mass not implemented here --
@@ -63,8 +61,8 @@ class Batch:
                 pseudopotentials[element] = pseudo_file
             input_data.pop('PSEUDOS', 'not_found')
 
-            input_data['pseudopotentials'] = pseudopotentials # **
-            input_data['PSEUDO_DIR'] = self.comp_spec.get('pseudo_loc')
+            input_data['pseudopotentials'] = pseudopotentials
+            input_data['PSEUDO_DIR'] = comp_spec.get('pseudo_loc')
 
             # XC functional preparation
             if {'input_dft', 'vdw_corr'} <=  input_data.keys():
@@ -84,66 +82,31 @@ class Batch:
             input_data['kpts'] = kpts
 
             return (input_data)
-
-        def build(atom_to_run):
-            """Build
-
-            Atomic structure builder and input file writer
-
-            Parameters
-            ----------
-            atom_to_run : dict
-                Atomic structure dictionary
-            """
-            if (self.system_spec.get('type') == 'Atom'):
-                _atoms       = atom_to_run['Species']
-                self.atoms_obj = Atoms(_atoms)
-                self.atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
-            elif (self.system_spec.get('type') == 'Molecule'):
-                _atoms = atom_to_run['Molecule']
-                self.atoms_obj = molecule(_atoms)
-                self.atoms_obj.set_cell(atom_to_run['Vacuum']*np.identity(3))
-            elif (self.system_spec.get('type') == 'Bulk'):
-                _atoms = atom_to_run['Bulk']
-                crystalstructure = atom_to_run['Crystalstructure']
-                self.atoms_obj = bulk(_atoms, crystalstructure=crystalstructure)
-            elif (self.system_spec.get('type') == 'Surface' or self.system_spec.get('type') == 'Adsorption'):
-                _atoms = atom_to_run['Surface']
-                crystalstructure = atom_to_run['Crystalstructure']
-                facet = str(atom_to_run['Facet'])
-                size = eval(atom_to_run['Size'])
-                vacuum = 0.5*atom_to_run['Vacuum']
-                if (crystalstructure+facet == 'fcc100'):
-                    self.atoms_obj = fcc100(_atoms, size=size, vacuum=vacuum)
-                elif (crystalstructure+facet == 'fcc110'):
-                    self.atoms_obj = fcc110(_atoms, size=size, vacuum=vacuum)
-                elif (crystalstructure+facet == 'fcc111'):
-                    self.atoms_obj = fcc111(_atoms, size=size, vacuum=vacuum)
-                elif (crystalstructure+facet == 'bcc100'):
-                    self.atoms_obj = bcc100(_atoms, size=size, vacuum=system_vacuum)
-                elif (crystalstructure+facet == 'bcc110'):
-                    self.atoms_obj = bcc110(_atoms, size=size, vacuum=system_vacuum)
-                elif (crystalstructure+facet == 'bcc111'):
-                    self.atoms_obj = bcc111(_atoms, size=size, vacuum=system_vacuum)
-
-                if (self.system_spec.get('type') == 'Adsorption'):
-                    _adsorbate = atom_to_run['Adsorbate']
-                    self.adsorbate_obj = molecule(_adsorbate)
-                    add_adsorbate(self.atoms_obj, self.adsorbate_obj, height = atom_to_run['Height'], position = atom_to_run['Site'])
-
-            # Finalize input_data and input file
-            input_data = get_dft_params(atom_to_run)
-            label = f"{_atoms}"
-            input_file, output_file = f"{label}.in", f"{label}.out"
-            self.atoms_obj.calc = Espresso(label=label, **input_data)
-            self.atoms_obj.calc.write_input(self.atoms_obj)
-            self.atoms_obj.write(f"{label}.xyz")
-
         # Run prerun for all systems in CSV
         manage_system_params()
-        for idx in range(len(self.atoms_to_run)):
-            dirname = self.comp_spec.get('prefix')+str(idx)
+        for idx, atom_to_run in enumerate(self.atoms_to_run.values(), start=1):
+
+            cwd = os.getcwd()
+            dirname = self.comp_spec.get('prefix')+str('{:04d}'.format(idx))
             os.makedirs(dirname, exist_ok=True)
             os.chdir(dirname)
-            build(self.atoms_to_run[idx])
+            input_data = get_dft_params(atom_to_run, self.dft_spec, self.comp_spec)
+            if self.debug:
+                pprint.pprint(input_data)
+            
+            _, input_file, output_file = build(atom_to_run=atom_to_run,
+                                               input_data=input_data,
+                                               system_spec=self.system_spec,
+                                               calc_name=self.dft_spec.get("name"),
+                                               file_prefix=self.comp_spec.get("file_prefix")
+                                               )
             os.chdir('../')
+
+            # Save jobinfo
+            self.jobinfo[idx] = {'idx':idx,
+                                 'cwd':os.path.join(cwd,dirname),
+                                 'input_file':input_file,
+                                 'output_file': output_file}
+
+        if make_jobscript is not None:
+            write_jobscript(batch_obj=self, jobinfo=self.jobinfo, jobopt=make_jobscript)
